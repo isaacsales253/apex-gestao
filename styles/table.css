@@ -216,6 +216,36 @@
   box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
 }
 
+.icon_btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.icon_btn:hover {
+  color: var(--primary-blue);
+  transform: scale(1.1);
+}
+
+.icon_btn.delete:hover {
+  color: var(--error-red);
+}
+
+.doc_link {
+  color: var(--accent-orange);
+  transition: color 0.2s;
+}
+
+.doc_link:hover {
+  color: var(--accent-orange-hover);
+}
+
 .modal_footer {
   padding: 1.5rem;
   border-top: 1px solid var(--border-color);

@@ -26,7 +26,8 @@ export default function ContasAPagar() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [formData, setFormData] = useState({ description: '', category: '', amount: '', due: '', status: 'pendente' });
+  const [formData, setFormData] = useState({ description: '', category: '', amount: '', due: '', status: 'pendente', recurrence: 'none', document_url: '' });
+
 
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -99,11 +100,13 @@ export default function ContasAPagar() {
         category: item.category, 
         amount: item.amount.toString(), 
         due: item.due_date, 
-        status: item.status 
+        status: item.status,
+        recurrence: item.recurrence || 'none',
+        document_url: item.document_url || ''
       });
     } else {
       setEditingItem(null);
-      setFormData({ description: '', category: '', amount: '', due: '', status: 'pendente' });
+      setFormData({ description: '', category: '', amount: '', due: '', status: 'pendente', recurrence: 'none', document_url: '' });
     }
     setIsModalOpen(true);
   };
@@ -118,6 +121,8 @@ export default function ContasAPagar() {
       status: formData.status,
       type: 'payable',
       entity_name: 'Fornecedor', // Padrão
+      recurrence: formData.recurrence,
+      document_url: formData.document_url,
       custom_id: editingItem ? editingItem.custom_id : `PAG-${Math.floor(1000 + Math.random() * 9000)}`
     };
 
@@ -141,6 +146,9 @@ export default function ContasAPagar() {
 
       if (!error && inserted) {
         setData(prev => [...prev, inserted]);
+      } else if (error) {
+        alert("Atenção: Adicione as colunas 'recurrence' e 'document_url' no seu Supabase!");
+        console.error(error);
       }
     }
     setIsModalOpen(false);
@@ -217,6 +225,15 @@ export default function ContasAPagar() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const getRecurrenceLabel = (rec: string) => {
+    switch(rec) {
+      case 'monthly': return 'Mensal';
+      case 'weekly': return 'Semanal';
+      case 'yearly': return 'Anual';
+      default: return '';
+    }
+  };
+
   if (!isAuth) return null;
 
   return (
@@ -291,8 +308,22 @@ export default function ContasAPagar() {
             {loading && <tr><td colSpan={7} style={{textAlign: 'center', padding: '3rem'}}>Conectando ao banco de dados...</td></tr>}
             {!loading && filteredData.map((row) => (
               <tr key={row.id}>
-                <td style={{fontWeight: 600}}>{row.custom_id}</td>
-                <td>{row.description}</td>
+                <td style={{fontWeight: 600}}>
+                  {row.custom_id}
+                  {row.recurrence && row.recurrence !== 'none' && (
+                    <span style={{display: 'block', fontSize: '10px', color: 'var(--accent-orange)', marginTop: '2px'}}>↻ {getRecurrenceLabel(row.recurrence)}</span>
+                  )}
+                </td>
+                <td>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    {row.description}
+                    {row.document_url && (
+                      <a href={row.document_url} target="_blank" rel="noopener noreferrer" className="doc_link" title="Acessar Documento (Drive/Anexo)">
+                        <Filter size={14} style={{transform: 'rotate(135deg)', marginTop: '2px'}}/>
+                      </a>
+                    )}
+                  </div>
+                </td>
                 <td>{row.category}</td>
                 <td>{new Date(`${row.due_date}T00:00:00`).toLocaleDateString('pt-BR')}</td>
                 <td style={{fontWeight: 700}}>{formatCurrency(row.amount)}</td>
@@ -303,13 +334,13 @@ export default function ContasAPagar() {
                 </td>
                 <td>
                   <div className="table_actions">
-                    <button className="action_btn" title="Aprovar/Pagar" style={{color: row.status === 'pago' ? 'var(--text-muted)' : 'var(--success-green)'}} onClick={() => handleConfirmPagamento(row.id)} disabled={row.status === 'pago'}>
+                    <button type="button" className="action_btn" title="Aprovar/Pagar" style={{color: row.status === 'pago' ? 'var(--text-muted)' : 'var(--success-green)'}} onClick={() => handleConfirmPagamento(row.id)} disabled={row.status === 'pago'}>
                       <CheckCircle2 size={16} />
                     </button>
-                    <button className="action_btn" title="Editar" onClick={() => openFormModal(row)}>
+                    <button type="button" className="action_btn" title="Editar" onClick={() => openFormModal(row)}>
                       <Edit3 size={16} />
                     </button>
-                    <button className="action_btn delete" title="Excluir" onClick={() => handleDelete(row.id)}>
+                    <button type="button" className="action_btn delete" title="Excluir" onClick={() => handleDelete(row.id)}>
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -326,30 +357,44 @@ export default function ContasAPagar() {
       {/* Main Form Modal */}
       {isModalOpen && (
         <div className="modal_overlay">
-          <div className="modal_content">
+          <div className="modal_content" style={{maxWidth: '600px'}}>
             <div className="modal_header">
               <h2>{editingItem ? 'Editar Conta a Pagar' : 'Nova Obrigação'}</h2>
-              <button className="close_btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+              <button type="button" className="close_btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSaveForm} className="modal_body">
               <div className="form_group">
                 <label>Descrição</label>
                 <input type="text" className="input_field" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
               </div>
-              <div className="form_group">
-                <div className="label_with_action">
-                  <label>Categoria</label>
-                  <button type="button" className="text_btn" onClick={() => setIsCategoryModalOpen(true)}>
-                    <Settings2 size={14} /> Gerenciar
-                  </button>
+              
+              <div className="form_grid">
+                <div className="form_group">
+                  <div className="label_with_action">
+                    <label>Categoria</label>
+                    <button type="button" className="text_btn" onClick={() => setIsCategoryModalOpen(true)}>
+                      <Settings2 size={14} /> Gerenciar
+                    </button>
+                  </div>
+                  <select className="input_field" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                    <option value="">Selecione uma categoria...</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
-                <select className="input_field" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                  <option value="">Selecione uma categoria...</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </select>
+                
+                <div className="form_group">
+                  <label>Recorrência</label>
+                  <select className="input_field" value={formData.recurrence} onChange={e => setFormData({...formData, recurrence: e.target.value})}>
+                    <option value="none">Nenhuma (Pagamento Único)</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
+                    <option value="yearly">Anual</option>
+                  </select>
+                </div>
               </div>
+
               <div className="form_grid">
                 <div className="form_group">
                   <label>Valor (R$)</label>
@@ -360,14 +405,23 @@ export default function ContasAPagar() {
                   <input type="date" className="input_field" required value={formData.due} onChange={e => setFormData({...formData, due: e.target.value})} />
                 </div>
               </div>
-              <div className="form_group">
-                <label>Status</label>
-                <select className="input_field" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                  <option value="pendente">Pendente</option>
-                  <option value="pago">Pago</option>
-                  <option value="atrasado">Atrasado</option>
-                </select>
+
+              <div className="form_grid">
+                <div className="form_group">
+                  <label>Link Anexo / Drive (Opcional)</label>
+                  <input type="url" className="input_field" placeholder="https://drive.google.com/..." value={formData.document_url} onChange={e => setFormData({...formData, document_url: e.target.value})} />
+                </div>
+
+                <div className="form_group">
+                  <label>Status</label>
+                  <select className="input_field" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
+                    <option value="pendente">Pendente</option>
+                    <option value="pago">Pago</option>
+                    <option value="atrasado">Atrasado</option>
+                  </select>
+                </div>
               </div>
+
               <div className="modal_footer">
                 <button type="button" className="btn" style={{border: '1px solid var(--border-color)', background: 'white'}} onClick={() => setIsModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary">Salvar Obrigação</button>
