@@ -12,34 +12,21 @@ import {
   Settings2
 } from "lucide-react";
 import "@/styles/table.css";
-
-const initialData = [
-  { id: "REC-2001", client: "Cliente Delta Ltda", category: "Serviços", amount: "15400.00", due: "2024-05-12", status: "pendente" },
-  { id: "REC-2002", client: "Posto Apex Sul", category: "Produtos", amount: "4200.00", due: "2024-05-02", status: "pago" },
-  { id: "REC-2003", client: "Supermercados Alfa", category: "Consultoria", amount: "8900.00", due: "2024-04-25", status: "atrasado" },
-  { id: "REC-2004", client: "Confeitaria Doce Mel", category: "Produtos", amount: "1550.00", due: "2024-05-18", status: "pendente" },
-  { id: "REC-2005", client: "Lojas Beta SA", category: "Suporte", amount: "3300.00", due: "2024-05-05", status: "pago" },
-];
-
-const initialCategories = [
-  { id: '1', name: 'Serviços' },
-  { id: '2', name: 'Produtos' },
-  { id: '3', name: 'Consultoria' },
-  { id: '4', name: 'Suporte' }
-];
+import { supabase } from "@/lib/supabase";
 
 export default function ContasAReceber() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   
   // Data State
-  const [data, setData] = useState(initialData);
-  const [categories, setCategories] = useState(initialCategories);
+  const [data, setData] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [formData, setFormData] = useState({ client: '', category: '', amount: '', due: '', status: 'pendente' });
+  const [formData, setFormData] = useState({ entity_name: '', category: '', amount: '', due: '', status: 'pendente' });
 
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -48,8 +35,8 @@ export default function ContasAReceber() {
 
   // Filter States
   const [filters, setFilters] = useState({
-    id: "",
-    client: "",
+    custom_id: "",
+    entity_name: "",
     category: "",
     amount: "",
     due: "",
@@ -62,59 +49,140 @@ export default function ContasAReceber() {
       router.push("/login");
     } else {
       setIsAuth(true);
+      fetchData();
     }
   }, [router]);
 
-  // Actions
-  const handleConfirmRecebimento = (id: string) => {
-    setData(prev => prev.map(item => item.id === id ? { ...item, status: 'pago' } : item));
+  const fetchData = async () => {
+    setLoading(true);
+    // Fetch transactions
+    const { data: transData } = await supabase
+      .from('finance_transactions')
+      .select('*')
+      .eq('type', 'receivable')
+      .order('due_date', { ascending: true });
+    
+    // Fetch categories
+    const { data: catData } = await supabase
+      .from('finance_categories')
+      .select('*')
+      .eq('type', 'receivable')
+      .order('name', { ascending: true });
+
+    if (transData) setData(transData);
+    if (catData) setCategories(catData);
+    setLoading(false);
   };
 
-  const handleDelete = (id: string) => {
+  // Actions
+  const handleConfirmRecebimento = async (id: string) => {
+    const { error } = await supabase.from('finance_transactions').update({ status: 'pago' }).eq('id', id);
+    if (!error) {
+      setData(prev => prev.map(item => item.id === id ? { ...item, status: 'pago' } : item));
+    } else {
+      alert("Erro ao atualizar!");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir este recebimento?")) {
-      setData(prev => prev.filter(item => item.id !== id));
+      const { error } = await supabase.from('finance_transactions').delete().eq('id', id);
+      if (!error) setData(prev => prev.filter(item => item.id !== id));
     }
   };
 
   const openFormModal = (item: any = null) => {
     if (item) {
       setEditingItem(item);
-      setFormData({ client: item.client, category: item.category, amount: item.amount, due: item.due, status: item.status });
+      setFormData({ 
+        entity_name: item.entity_name, 
+        category: item.category, 
+        amount: item.amount.toString(), 
+        due: item.due_date, 
+        status: item.status 
+      });
     } else {
       setEditingItem(null);
-      setFormData({ client: '', category: '', amount: '', due: '', status: 'pendente' });
+      setFormData({ entity_name: '', category: '', amount: '', due: '', status: 'pendente' });
     }
     setIsModalOpen(true);
   };
 
-  const handleSaveForm = (e: any) => {
+  const handleSaveForm = async (e: any) => {
     e.preventDefault();
+    const payload = {
+      description: 'Recebimento', // Padrão
+      entity_name: formData.entity_name, // Cliente
+      category: formData.category,
+      amount: parseFloat(formData.amount),
+      due_date: formData.due,
+      status: formData.status,
+      type: 'receivable',
+      custom_id: editingItem ? editingItem.custom_id : `REC-${Math.floor(1000 + Math.random() * 9000)}`
+    };
+
     if (editingItem) {
-      setData(prev => prev.map(item => item.id === editingItem.id ? { ...item, ...formData } : item));
+      const { data: updated, error } = await supabase
+        .from('finance_transactions')
+        .update(payload)
+        .eq('id', editingItem.id)
+        .select()
+        .single();
+        
+      if (!error && updated) {
+        setData(prev => prev.map(item => item.id === editingItem.id ? updated : item));
+      }
     } else {
-      const newId = `REC-200${data.length + 1}`;
-      setData(prev => [...prev, { id: newId, ...formData }]);
+      const { data: inserted, error } = await supabase
+        .from('finance_transactions')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (!error && inserted) {
+        setData(prev => [...prev, inserted]);
+      }
     }
     setIsModalOpen(false);
   };
 
   // Category Actions
-  const handleSaveCategory = (e: any) => {
+  const handleSaveCategory = async (e: any) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     
     if (editingCategory) {
-      setCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...c, name: newCategoryName } : c));
-      setEditingCategory(null);
+      const { data: updated, error } = await supabase
+        .from('finance_categories')
+        .update({ name: newCategoryName })
+        .eq('id', editingCategory.id)
+        .select()
+        .single();
+        
+      if (!error && updated) {
+        setCategories(prev => prev.map(c => c.id === editingCategory.id ? updated : c));
+        setEditingCategory(null);
+      }
     } else {
-      setCategories(prev => [...prev, { id: Date.now().toString(), name: newCategoryName }]);
+      const { data: inserted, error } = await supabase
+        .from('finance_categories')
+        .insert({ name: newCategoryName, type: 'receivable' })
+        .select()
+        .single();
+        
+      if (!error && inserted) {
+        setCategories(prev => [...prev, inserted]);
+      }
     }
     setNewCategoryName("");
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir esta categoria?")) {
-      setCategories(prev => prev.filter(c => c.id !== id));
+      const { error } = await supabase.from('finance_categories').delete().eq('id', id);
+      if (!error) {
+        setCategories(prev => prev.filter(c => c.id !== id));
+      }
     }
   };
 
@@ -136,19 +204,17 @@ export default function ContasAReceber() {
 
   const filteredData = data.filter(item => {
     return (
-      item.id.toLowerCase().includes(filters.id.toLowerCase()) &&
-      item.client.toLowerCase().includes(filters.client.toLowerCase()) &&
-      item.category.toLowerCase().includes(filters.category.toLowerCase()) &&
-      item.amount.toLowerCase().includes(filters.amount.toLowerCase()) &&
-      item.due.toLowerCase().includes(filters.due.toLowerCase()) &&
-      item.status.toLowerCase().includes(filters.status.toLowerCase())
+      (item.custom_id || '').toLowerCase().includes(filters.custom_id.toLowerCase()) &&
+      (item.entity_name || '').toLowerCase().includes(filters.entity_name.toLowerCase()) &&
+      (item.category || '').toLowerCase().includes(filters.category.toLowerCase()) &&
+      (item.amount?.toString() || '').includes(filters.amount) &&
+      (item.due_date || '').includes(filters.due) &&
+      (item.status || '').toLowerCase().includes(filters.status.toLowerCase())
     );
   });
 
-  const formatCurrency = (value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return `R$ ${value}`;
-    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   if (!isAuth) return null;
@@ -158,12 +224,12 @@ export default function ContasAReceber() {
       <header className="page-header">
         <div className="header-titles">
           <h1>Contas a Receber</h1>
-          <p>Obrigações dos clientes, comissão e entradas (formato planilha).</p>
+          <p>Obrigações dos clientes, comissão e entradas integradas ao banco de dados.</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-primary" style={{backgroundColor: 'var(--success-green)'}} onClick={() => openFormModal()}>
+          <button className="btn btn-primary" style={{backgroundColor: 'var(--success-green)'}} onClick={() => openFormModal()} disabled={loading}>
             <Plus size={20} />
-            Novo Recebimento
+            {loading ? 'Carregando...' : 'Novo Recebimento'}
           </button>
         </div>
       </header>
@@ -175,13 +241,13 @@ export default function ContasAReceber() {
               <th>
                 <div className="th_content">
                   <span className="th_label">NF / ID <Filter size={12} /></span>
-                  <input type="text" className="column_filter" placeholder="Origem" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} />
+                  <input type="text" className="column_filter" placeholder="Origem" value={filters.custom_id} onChange={(e) => handleFilterChange('custom_id', e.target.value)} />
                 </div>
               </th>
               <th>
                  <div className="th_content">
                   <span className="th_label">Cliente / Pagador <Filter size={12} /></span>
-                  <input type="text" className="column_filter" placeholder="Buscar Cliente" value={filters.client} onChange={(e) => handleFilterChange('client', e.target.value)} />
+                  <input type="text" className="column_filter" placeholder="Buscar Cliente" value={filters.entity_name} onChange={(e) => handleFilterChange('entity_name', e.target.value)} />
                 </div>
               </th>
               <th>
@@ -222,12 +288,13 @@ export default function ContasAReceber() {
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row) => (
+            {loading && <tr><td colSpan={7} style={{textAlign: 'center', padding: '3rem'}}>Conectando ao banco de dados...</td></tr>}
+            {!loading && filteredData.map((row) => (
               <tr key={row.id}>
-                <td style={{fontWeight: 600}}>{row.id}</td>
-                <td>{row.client}</td>
+                <td style={{fontWeight: 600}}>{row.custom_id}</td>
+                <td>{row.entity_name}</td>
                 <td>{row.category}</td>
-                <td>{new Date(row.due).toLocaleDateString('pt-BR' , { timeZone: 'UTC' })}</td>
+                <td>{new Date(`${row.due_date}T00:00:00`).toLocaleDateString('pt-BR')}</td>
                 <td style={{fontWeight: 700, color: 'var(--success-green)'}}>{formatCurrency(row.amount)}</td>
                 <td>
                   <span className={`status_badge ${row.status === 'pago' ? 'status_pago' : row.status === 'atrasado' ? 'status_atrasado' : 'status_pendente'}`}>
@@ -249,8 +316,8 @@ export default function ContasAReceber() {
                 </td>
               </tr>
             ))}
-            {filteredData.length === 0 && (
-              <tr><td colSpan={7} style={{textAlign: 'center', padding: '3rem', color: 'var(--text-muted)'}}>Nenhum registro encontrado.</td></tr>
+            {!loading && filteredData.length === 0 && (
+              <tr><td colSpan={7} style={{textAlign: 'center', padding: '3rem', color: 'var(--text-muted)'}}>Nenhum registro encontrado no banco de dados.</td></tr>
             )}
           </tbody>
         </table>
@@ -267,7 +334,7 @@ export default function ContasAReceber() {
             <form onSubmit={handleSaveForm} className="modal_body">
               <div className="form_group">
                 <label>Cliente / Pagador</label>
-                <input type="text" className="input_field" required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} />
+                <input type="text" className="input_field" required value={formData.entity_name} onChange={e => setFormData({...formData, entity_name: e.target.value})} />
               </div>
               <div className="form_group">
                 <div className="label_with_action">
