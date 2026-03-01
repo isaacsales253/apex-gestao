@@ -1,0 +1,146 @@
+.main_content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header_titles h1 {
+  font-size: 1.875rem;
+  color: var(--primary-blue);
+  font-weight: 700;
+}
+
+.header_titles p {
+  color: var(--text-muted);
+}
+
+.stats_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard_grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chart_placeholder {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-light);
+  border-radius: 8px;
+  margin-top: 1rem;
+  color: var(--text-muted);
+}
+
+.alert_list {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.alert_list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot_warning { background-color: #FBBF24; }
+.dot_danger { background-color: #EF4444; }
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn_primary {
+  background-color: var(--accent-orange);
+  color: white;
+}
+
+.btn_primary:hover {
+  background-color: var(--accent-orange-hover);
+}
+
+/* StatCard Styles */
+.stat_card {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: transform 0.2s;
+}
+
+.stat_card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.stat_icon {
+  background: var(--surface-light);
+  padding: 0.75rem;
+  border-radius: 10px;
+}
+
+.stat_info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat_title {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.stat_value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-top: 0.25rem;
+}
+
+.stat_trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.stat_trend_up { color: var(--success-green); }
+.stat_trend_down { color: var(--error-red); }

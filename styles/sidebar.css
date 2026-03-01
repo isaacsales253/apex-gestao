@@ -1,0 +1,99 @@
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: var(--primary-blue);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.sidebar_header {
+  padding: 2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  gap: 4px;
+}
+
+.logo_apex {
+  color: var(--accent-orange);
+}
+
+.logo_gestao {
+  color: white;
+}
+
+.sidebar_nav {
+  flex: 1;
+  padding: 0 0.75rem;
+}
+
+.nav_group {
+  margin-bottom: 0.5rem;
+}
+
+.nav_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav_item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav_item_active {
+  background-color: var(--accent-orange);
+  color: white;
+}
+
+.nav_link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  color: inherit;
+}
+
+.chevron {
+  transition: transform 0.2s;
+}
+
+.chevron_expanded {
+  transform: rotate(90deg);
+}
+
+.sub_menu {
+  padding-left: 2.75rem;
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sub_nav_item {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+}
+
+.sub_nav_item:hover {
+  color: white;
+}
