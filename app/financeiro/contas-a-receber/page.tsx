@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Plus, 
-  Trash2, 
   Edit3, 
   CheckCircle2,
   Filter,

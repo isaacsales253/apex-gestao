@@ -2,14 +2,8 @@
 
 import { 
   LayoutDashboard, 
-  ShoppingCart, 
-  Package, 
   DollarSign, 
-  Users, 
-  FileText, 
-  Settings,
   LogOut,
-  User,
   Clock
 } from "lucide-react";
 import Link from "next/link";
@@ -26,11 +20,6 @@ export default function Navbar() {
     localStorage.removeItem("apex_auth");
     router.push("/login");
   };
-
-  const navItems = [
-    { icon: <LayoutDashboard size={18} />, label: "Dashboard", href: "/" },
-    { icon: <DollarSign size={18} />, label: "Despesas Fixas", href: "/despesas-fixas" },
-  ];
 
   return (
     <nav className="navbar">

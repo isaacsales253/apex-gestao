@@ -47,6 +47,12 @@ button {
   padding: 2.5rem;
 }
 
+@media (max-width: 768px) {
+  .content_view_port {
+    padding: 1.5rem;
+  }
+}
+
 /* Page Headers */
 .page-header {
   display: flex;

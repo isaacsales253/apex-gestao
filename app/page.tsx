@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DollarSign, LayoutDashboard } from "lucide-react";
-import "@/styles/dashboard.css";
 
 export default function Dashboard() {
   const router = useRouter();
