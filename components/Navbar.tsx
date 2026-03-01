@@ -28,12 +28,7 @@ export default function Navbar() {
 
   const navItems = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", href: "/" },
-    { icon: <ShoppingCart size={18} />, label: "Compras", href: "/compras" },
-    { icon: <Package size={18} />, label: "Estoque", href: "/estoque" },
-    { icon: <DollarSign size={18} />, label: "Financeiro", href: "/financeiro" },
-    { icon: <Users size={18} />, label: "RH", href: "/rh" },
-    { icon: <FileText size={18} />, label: "Relatórios", href: "/relatorios" },
-    { icon: <Settings size={18} />, label: "Configurações", href: "/configuracoes" },
+    { icon: <DollarSign size={18} />, label: "Despesas Fixas", href: "/despesas-fixas" },
   ];
 
   return (

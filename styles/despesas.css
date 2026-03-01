@@ -1,0 +1,144 @@
+/* Despesas Fixas Styles */
+
+.expenses_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.expense_card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.expense_card:hover {
+  border-color: var(--accent-orange);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.expense_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.expense_icon_bg {
+  width: 48px;
+  height: 48px;
+  background: #F1F5F9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+}
+
+.expense_status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status_pago { background: #DCFCE7; color: #166534; }
+.status_pendente { background: #FEF3C7; color: #92400E; }
+
+.expense_main_info h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-bottom: 0.25rem;
+}
+
+.expense_main_info p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.expense_amount_box {
+  background: var(--surface-light);
+  padding: 1rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.amount_label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.amount_value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.expense_footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.expense_due_info {
+  display: flex;
+  flex-direction: column;
+}
+
+.due_label {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.due_date {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.action_buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon_btn {
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.icon_btn:hover {
+  background: var(--surface-light);
+  color: var(--primary-blue);
+}
+
+.icon_btn.delete:hover {
+  color: var(--error-red);
+  background: #FFF5F5;
+}
+
+/* Modal/Expansion placeholder for future interactivity */
+.expense_details_expanded {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}

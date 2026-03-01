@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DollarSign, LayoutDashboard } from "lucide-react";
 import "@/styles/dashboard.css";
 
 export default function Dashboard() {
@@ -29,10 +30,43 @@ export default function Dashboard() {
       </header>
 
       <div className="empty_state_card">
-        <div className="empty_icon">📊</div>
-        <h2>Painel em Construção</h2>
-        <p>Este espaço está sendo otimizado para oferecer a melhor visualização dos seus dados.</p>
-        <span className="status_badge">Aguardando Módulos</span>
+        <div className="empty_icon">🚀</div>
+        <h2>Seja bem-vindo, Administrador</h2>
+        <p>O Apex Gestão foi otimizado. Selecione um módulo abaixo para começar.</p>
+        
+        <div style={{
+          display: 'flex', 
+          gap: '1.5rem', 
+          marginTop: '2rem',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => router.push('/despesas-fixas')}
+            style={{padding: '1.5rem 2rem', fontSize: '1rem', borderRadius: '16px'}}
+          >
+            <DollarSign size={24} />
+            Gerenciar Despesas Fixas
+          </button>
+          
+          <button 
+            className="btn" 
+            style={{
+              padding: '1.5rem 2rem', 
+              fontSize: '1rem', 
+              borderRadius: '16px',
+              border: '1px solid var(--border-color)',
+              background: 'white',
+              color: 'var(--primary-blue)'
+            }}
+          >
+            <LayoutDashboard size={24} />
+            Módulos em Breve
+          </button>
+        </div>
+
+        <span className="status_badge" style={{marginTop: '2.5rem'}}>Sistema Otimizado (Vercel)</span>
       </div>
     </main>
   );
