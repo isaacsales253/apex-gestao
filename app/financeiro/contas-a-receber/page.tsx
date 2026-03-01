@@ -26,9 +26,17 @@ export default function ContasAReceber() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [formData, setFormData] = useState({ entity_name: '', category: '', amount: '', due: '', status: 'pendente', recurrence: 'none', document_url: '' });
-
-
+  const [formData, setFormData] = useState({ 
+    entity_name: '', 
+    category: '', 
+    amount: '', 
+    due: '', 
+    status: 'pendente', 
+    document_url: '',
+    invoice_number: '',
+    installments: 1,
+    installmentsDates: [] as string[]
+  });
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -101,32 +109,69 @@ export default function ContasAReceber() {
         amount: item.amount.toString(), 
         due: item.due_date, 
         status: item.status,
-        recurrence: item.recurrence || 'none',
-        document_url: item.document_url || ''
+        document_url: item.document_url || '',
+        invoice_number: item.invoice_number || '',
+        installments: 1,
+        installmentsDates: []
       });
     } else {
       setEditingItem(null);
-      setFormData({ entity_name: '', category: '', amount: '', due: '', status: 'pendente', recurrence: 'none', document_url: '' });
+      setFormData({ 
+        entity_name: '', category: '', amount: '', due: '', status: 'pendente', 
+        document_url: '', invoice_number: '', installments: 1, installmentsDates: [] 
+      });
     }
     setIsModalOpen(true);
   };
 
+  const generateDates = (baseDate: string, count: number) => {
+    const dates = [];
+    if (baseDate && count > 1) {
+      const base = new Date(`${baseDate}T12:00:00`);
+      for (let i = 1; i < count; i++) {
+        const nextDate = new Date(base);
+        nextDate.setMonth(base.getMonth() + i);
+        dates.push(nextDate.toISOString().split('T')[0]);
+      }
+    }
+    return dates;
+  };
+
+  const handleInstallmentsChange = (val: string) => {
+    const count = parseInt(val, 10) || 1;
+    setFormData(prev => ({ ...prev, installments: count, installmentsDates: generateDates(prev.due, count) }));
+  };
+
+  const handleDueChange = (val: string) => {
+    setFormData(prev => ({ ...prev, due: val, installmentsDates: generateDates(val, prev.installments) }));
+  };
+
+  const handleDateChange = (index: number, val: string) => {
+    const newDates = [...formData.installmentsDates];
+    newDates[index] = val;
+    setFormData(prev => ({ ...prev, installmentsDates: newDates }));
+  };
+
   const handleSaveForm = async (e: any) => {
     e.preventDefault();
-    const payload = {
-      description: 'Recebimento', // Padrão
-      entity_name: formData.entity_name, // Cliente
+    const basePayload = {
+      entity_name: formData.entity_name,
       category: formData.category,
-      amount: parseFloat(formData.amount),
-      due_date: formData.due,
       status: formData.status,
       type: 'receivable',
-      recurrence: formData.recurrence,
       document_url: formData.document_url,
-      custom_id: editingItem ? editingItem.custom_id : `REC-${Math.floor(1000 + Math.random() * 9000)}`
+      invoice_number: formData.invoice_number,
     };
 
     if (editingItem) {
+      const payload = {
+        ...basePayload,
+        description: editingItem.description || 'Recebimento',
+        amount: parseFloat(formData.amount),
+        due_date: formData.due,
+        custom_id: editingItem.custom_id
+      };
+      
       const { data: updated, error } = await supabase
         .from('finance_transactions')
         .update(payload)
@@ -138,17 +183,36 @@ export default function ContasAReceber() {
         setData(prev => prev.map(item => item.id === editingItem.id ? updated : item));
       }
     } else {
-      const { data: inserted, error } = await supabase
-        .from('finance_transactions')
-        .insert(payload)
-        .select()
-        .single();
-
-      if (!error && inserted) {
-        setData(prev => [...prev, inserted]);
-      } else if (error) {
-        alert("Atenção: Adicione as colunas 'recurrence' e 'document_url' no seu Supabase!");
-        console.error(error);
+      const qty = formData.installments;
+      if (qty > 1) {
+        const payloads = [];
+        for (let i = 0; i < qty; i++) {
+          payloads.push({
+            ...basePayload,
+            description: `Recebimento (${i+1}/${qty})`,
+            amount: parseFloat(formData.amount),
+            due_date: i === 0 ? formData.due : formData.installmentsDates[i - 1],
+            custom_id: `REC-${Math.floor(1000 + Math.random() * 9000)}`
+          });
+        }
+        
+        const { data: insertedList, error } = await supabase.from('finance_transactions').insert(payloads).select();
+        if (!error && insertedList) {
+          setData(prev => [...prev, ...insertedList]);
+        } else if (error) {
+          alert("Erro ao realizar lançamentos, verifique a coluna de notas fiscais.");
+          console.error(error);
+        }
+      } else {
+        const payload = {
+          ...basePayload,
+          description: 'Recebimento',
+          amount: parseFloat(formData.amount),
+          due_date: formData.due,
+          custom_id: `REC-${Math.floor(1000 + Math.random() * 9000)}`
+        };
+        const { data: inserted, error } = await supabase.from('finance_transactions').insert(payload).select().single();
+        if (!error && inserted) setData(prev => [...prev, inserted]);
       }
     }
     setIsModalOpen(false);
@@ -225,14 +289,7 @@ export default function ContasAReceber() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const getRecurrenceLabel = (rec: string) => {
-    switch(rec) {
-      case 'monthly': return 'Mensal';
-      case 'weekly': return 'Semanal';
-      case 'yearly': return 'Anual';
-      default: return '';
-    }
-  };
+
 
   if (!isAuth) return null;
 
@@ -310,8 +367,8 @@ export default function ContasAReceber() {
               <tr key={row.id}>
                 <td style={{fontWeight: 600}}>
                   {row.custom_id}
-                  {row.recurrence && row.recurrence !== 'none' && (
-                    <span style={{display: 'block', fontSize: '10px', color: 'var(--success-green)', marginTop: '2px'}}>↻ {getRecurrenceLabel(row.recurrence)}</span>
+                  {row.invoice_number && (
+                    <span style={{display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px'}}>NF: {row.invoice_number}</span>
                   )}
                 </td>
                 <td>
@@ -363,9 +420,15 @@ export default function ContasAReceber() {
               <button type="button" className="close_btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSaveForm} className="modal_body">
-              <div className="form_group">
-                <label>Cliente / Pagador</label>
-                <input type="text" className="input_field" required value={formData.entity_name} onChange={e => setFormData({...formData, entity_name: e.target.value})} />
+              <div className="form_grid">
+                <div className="form_group">
+                  <label>Cliente / Pagador</label>
+                  <input type="text" className="input_field" required value={formData.entity_name} onChange={e => setFormData({...formData, entity_name: e.target.value})} />
+                </div>
+                <div className="form_group">
+                  <label>Nota Fiscal (NF)</label>
+                  <input type="text" className="input_field" placeholder="Opc. / Número" value={formData.invoice_number} onChange={e => setFormData({...formData, invoice_number: e.target.value})} />
+                </div>
               </div>
               
               <div className="form_grid">
@@ -383,28 +446,36 @@ export default function ContasAReceber() {
                     ))}
                   </select>
                 </div>
-                
                 <div className="form_group">
-                  <label>Recorrência</label>
-                  <select className="input_field" value={formData.recurrence} onChange={e => setFormData({...formData, recurrence: e.target.value})}>
-                    <option value="none">Nenhuma (Entrada Única)</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensal</option>
-                    <option value="yearly">Anual</option>
-                  </select>
+                  <label>Repetir (Parcelas)</label>
+                  <input type="number" min="1" className="input_field" disabled={!!editingItem} value={formData.installments} onChange={e => handleInstallmentsChange(e.target.value)} />
                 </div>
               </div>
 
               <div className="form_grid">
                 <div className="form_group">
-                  <label>Valor (R$)</label>
+                  <label>Valor de Cada (R$)</label>
                   <input type="number" step="0.01" className="input_field" required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
                 </div>
                 <div className="form_group">
-                  <label>Previsão</label>
-                  <input type="date" className="input_field" required value={formData.due} onChange={e => setFormData({...formData, due: e.target.value})} />
+                  <label>Previsão Inicial</label>
+                  <input type="date" className="input_field" required value={formData.due} onChange={e => handleDueChange(e.target.value)} />
                 </div>
               </div>
+
+              {formData.installments > 1 && !editingItem && (
+                <div className="form_group" style={{padding: '1rem', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0'}}>
+                  <label style={{marginBottom: '0.8rem'}}>Vencimentos das Próximas Parcelas:</label>
+                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px'}}>
+                    {formData.installmentsDates.map((d, i) => (
+                      <div key={i} style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                        <span style={{fontSize: '11px', color: 'var(--text-muted)'}}>{i+2}ª Vez</span>
+                        <input type="date" className="input_field" value={d} onChange={e => handleDateChange(i, e.target.value)} style={{padding: '0.4rem', fontSize: '13px'}} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="form_grid">
                 <div className="form_group">
