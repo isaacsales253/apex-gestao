@@ -9,7 +9,8 @@ import {
   FileText, 
   Settings,
   LogOut,
-  User
+  User,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,16 +39,31 @@ export default function Navbar() {
       </Link>
 
       <div className="nav_links">
-        {navItems.map((item) => (
-          <Link 
-            key={item.href} 
-            href={item.href} 
-            className={`nav_item ${pathname === item.href ? 'active' : ''}`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        <Link 
+          href="/" 
+          className={`nav_item ${pathname === "/" ? 'active' : ''}`}
+        >
+          <LayoutDashboard size={18} />
+          <span>Dashboard</span>
+        </Link>
+
+        <div className="nav_item_wrapper">
+          <div className={`nav_item ${pathname.includes("/financeiro") ? 'active' : ''}`}>
+             <DollarSign size={18} />
+             <span>Financeiro</span>
+          </div>
+          
+          <div className="dropdown_menu">
+            <Link href="/financeiro/contas-a-pagar" className="dropdown_item">
+              <Clock size={16} />
+              Contas a Pagar
+            </Link>
+            <Link href="/financeiro/contas-a-receber" className="dropdown_item">
+              <DollarSign size={16} />
+              Contas a Receber
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="nav_user_section">

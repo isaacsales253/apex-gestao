@@ -43,11 +43,11 @@ export default function Dashboard() {
         }}>
           <button 
             className="btn btn-primary" 
-            onClick={() => router.push('/despesas-fixas')}
+            onClick={() => router.push('/financeiro/contas-a-pagar')}
             style={{padding: '1.5rem 2rem', fontSize: '1rem', borderRadius: '16px'}}
           >
             <DollarSign size={24} />
-            Gerenciar Despesas Fixas
+            Gerenciar Financeiro
           </button>
           
           <button 

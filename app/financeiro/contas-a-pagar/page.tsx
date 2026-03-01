@@ -37,8 +37,8 @@ export default function DespesasFixas() {
     <main className="content_view_port">
       <header className="page-header">
         <div className="header-titles">
-          <h1>Despesas Fixas</h1>
-          <p>Gestão de custos recorrentes e operacionais.</p>
+          <h1>Contas a Pagar</h1>
+          <p>Controle de obrigações financeiras e despesas fixas.</p>
         </div>
         <div className="header-actions">
           <button className="btn btn-primary">
