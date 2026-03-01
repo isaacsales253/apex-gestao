@@ -8,7 +8,8 @@ import {
   Edit3, 
   CheckCircle2,
   Filter,
-  X
+  X,
+  Settings2
 } from "lucide-react";
 import "@/styles/table.css";
 
@@ -20,17 +21,30 @@ const initialData = [
   { id: "REC-2005", client: "Lojas Beta SA", category: "Suporte", amount: "3300.00", due: "2024-05-05", status: "pago" },
 ];
 
+const initialCategories = [
+  { id: '1', name: 'Serviços' },
+  { id: '2', name: 'Produtos' },
+  { id: '3', name: 'Consultoria' },
+  { id: '4', name: 'Suporte' }
+];
+
 export default function ContasAReceber() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   
   // Data State
   const [data, setData] = useState(initialData);
+  const [categories, setCategories] = useState(initialCategories);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState({ client: '', category: '', amount: '', due: '', status: 'pendente' });
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [editingCategory, setEditingCategory] = useState<any>(null);
 
   // Filter States
   const [filters, setFilters] = useState({
@@ -82,6 +96,37 @@ export default function ContasAReceber() {
       setData(prev => [...prev, { id: newId, ...formData }]);
     }
     setIsModalOpen(false);
+  };
+
+  // Category Actions
+  const handleSaveCategory = (e: any) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    
+    if (editingCategory) {
+      setCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...c, name: newCategoryName } : c));
+      setEditingCategory(null);
+    } else {
+      setCategories(prev => [...prev, { id: Date.now().toString(), name: newCategoryName }]);
+    }
+    setNewCategoryName("");
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir esta categoria?")) {
+      setCategories(prev => prev.filter(c => c.id !== id));
+    }
+  };
+
+  const handleEditCategory = (cat: any) => {
+    setEditingCategory(cat);
+    setNewCategoryName(cat.name);
+  };
+
+  const closeCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+    setNewCategoryName("");
   };
 
   // Filters
@@ -142,7 +187,12 @@ export default function ContasAReceber() {
               <th>
                  <div className="th_content">
                   <span className="th_label">Categoria <Filter size={12} /></span>
-                  <input type="text" className="column_filter" placeholder="Buscar Categoria" value={filters.category} onChange={(e) => handleFilterChange('category', e.target.value)} />
+                  <select className="column_filter" value={filters.category} onChange={(e) => handleFilterChange('category', e.target.value)}>
+                    <option value="">Todas</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
               </th>
               <th>
@@ -206,7 +256,7 @@ export default function ContasAReceber() {
         </table>
       </section>
 
-      {/* Modal for Create/Edit */}
+      {/* Main Form Modal */}
       {isModalOpen && (
         <div className="modal_overlay">
           <div className="modal_content">
@@ -220,8 +270,18 @@ export default function ContasAReceber() {
                 <input type="text" className="input_field" required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} />
               </div>
               <div className="form_group">
-                <label>Categoria</label>
-                <input type="text" className="input_field" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} />
+                <div className="label_with_action">
+                  <label>Categoria</label>
+                  <button type="button" className="text_btn" onClick={() => setIsCategoryModalOpen(true)}>
+                    <Settings2 size={14} /> Gerenciar
+                  </button>
+                </div>
+                <select className="input_field" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                  <option value="">Selecione uma categoria...</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="form_grid">
                 <div className="form_group">
@@ -246,6 +306,39 @@ export default function ContasAReceber() {
                 <button type="submit" className="btn btn-primary" style={{backgroundColor: 'var(--success-green)'}}>Salvar Registro</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Management Modal (Nested) */}
+      {isCategoryModalOpen && (
+        <div className="modal_overlay modal_overlay_nested">
+          <div className="modal_content" style={{maxWidth: '400px'}}>
+             <div className="modal_header">
+                <h2>Gerenciar Categorias</h2>
+                <button type="button" className="close_btn" onClick={closeCategoryModal}><X size={20} /></button>
+             </div>
+             <div className="modal_body">
+                <form onSubmit={handleSaveCategory} style={{display: 'flex', gap: '8px'}}>
+                  <input type="text" className="input_field" style={{flex: 1}} required placeholder="Nova categoria..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
+                  <button type="submit" className="btn btn-primary" style={{padding: '0.75rem 1rem'}}>
+                    {editingCategory ? 'Atualizar' : 'Adicionar'}
+                  </button>
+                </form>
+                
+                <div className="category_list">
+                  {categories.length === 0 && <p style={{textAlign:'center', color:'var(--text-muted)'}}>Nenhuma categoria.</p>}
+                  {categories.map(cat => (
+                    <div key={cat.id} className="category_item">
+                      <span>{cat.name}</span>
+                      <div className="category_actions">
+                        <button type="button" className="icon_btn" onClick={() => handleEditCategory(cat)} title="Editar"><Edit3 size={16}/></button>
+                        <button type="button" className="icon_btn delete" onClick={() => handleDeleteCategory(cat.id)} title="Excluir"><Trash2 size={16}/></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
           </div>
         </div>
       )}
