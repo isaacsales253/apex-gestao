@@ -1,108 +1,63 @@
 "use client";
 
 import { 
-  BarChart3, 
-  Box, 
-  ChevronRight, 
-  DollarSign, 
-  FileText, 
   LayoutDashboard, 
-  Package, 
-  Settings, 
   ShoppingCart, 
-  Users 
+  Package, 
+  DollarSign, 
+  Users, 
+  FileText, 
+  Settings,
+  LogOut,
+  ChevronRight
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import "@/styles/sidebar.css";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-  { 
-    icon: ShoppingCart, 
-    label: "Compras", 
-    href: "/compras",
-    subItems: ["Pedidos", "Fornecedores", "Insumos"]
-  },
-  { 
-    icon: Package, 
-    label: "Estoque", 
-    href: "/estoque",
-    subItems: ["Movimentação", "Fichas Técnicas", "Inventário"]
-  },
-  { 
-    icon: DollarSign, 
-    label: "Financeiro", 
-    href: "/financeiro",
-    subItems: ["Contas a Pagar", "Contas a Receber", "Fluxo de Caixa"]
-  },
-  { 
-    icon: Users, 
-    label: "RH", 
-    href: "/rh",
-    subItems: ["Custo Trabalhista", "Colaboradores"]
-  },
-  { icon: FileText, label: "Relatórios", href: "/relatorios" },
-  { icon: Settings, label: "Configurações", href: "/configuracoes" },
-];
-
 export default function Sidebar() {
-  const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const router = useRouter();
 
-  const toggleExpand = (label: string) => {
-    setExpandedItems(prev => 
-      prev.includes(label) 
-        ? prev.filter(item => item !== label) 
-        : [...prev, label]
-    );
+  const handleLogout = () => {
+    localStorage.removeItem("apex_auth");
+    router.push("/login");
   };
+
+  const menuItems = [
+    { icon: <LayoutDashboard size={20} />, label: "Dashboard", active: true },
+    { icon: <ShoppingCart size={20} />, label: "Compras" },
+    { icon: <Package size={20} />, label: "Estoque" },
+    { icon: <DollarSign size={20} />, label: "Financeiro" },
+    { icon: <Users size={20} />, label: "RH" },
+    { icon: <FileText size={20} />, label: "Relatórios" },
+    { icon: <Settings size={20} />, label: "Configurações" },
+  ];
 
   return (
     <aside className="sidebar">
       <div className="sidebar_header">
-        <div className="logo">
-          <span className="logo_apex">APEX</span>
-          <span className="logo_gestao">GESTÃO</span>
-        </div>
+        <h2 className="sidebar_logo">APEX <span>GESTÃO</span></h2>
       </div>
 
       <nav className="sidebar_nav">
-        {menuItems.map((item) => (
-          <div key={item.label} className="nav_group">
-            <div 
-              className={`nav_item ${pathname === item.href ? "nav_item_active" : ""}`}
-              onClick={() => item.subItems && toggleExpand(item.label)}
-            >
-              <Link href={item.href} className="nav_link">
-                <item.icon size={20} />
+        {menuItems.map((item, index) => (
+          <div key={index} className="nav_item_group">
+            <button className={`nav_btn ${item.active ? 'active' : ''}`}>
+              <div className="nav_btn_content">
+                {item.icon}
                 <span>{item.label}</span>
-              </Link>
-              {item.subItems && (
-                <ChevronRight 
-                  size={16} 
-                  className={`chevron ${expandedItems.includes(item.label) ? "chevron_expanded" : ""}`} 
-                />
-              )}
-            </div>
-
-            {item.subItems && expandedItems.includes(item.label) && (
-              <div className="sub_menu">
-                {item.subItems.map(subItem => (
-                  <Link 
-                    key={subItem} 
-                    href={`${item.href}/${subItem.toLowerCase().replace(/ /g, "-")}`}
-                    className="sub_nav_item"
-                  >
-                    {subItem}
-                  </Link>
-                ))}
               </div>
-            )}
+              <ChevronRight size={14} className="chevron" />
+            </button>
           </div>
         ))}
       </nav>
+
+      <div className="sidebar_footer">
+        <button className="logout_btn" onClick={handleLogout}>
+          <LogOut size={20} />
+          <span>Sair do Sistema</span>
+        </button>
+      </div>
     </aside>
   );
 }
