@@ -1,6 +1,6 @@
 :root {
   --primary-blue: #003366;
-  --secondary-blue: #004d99;
+  --secondary-blue: #00509E;
   --accent-orange: #FF6B00;
   --accent-orange-hover: #E66000;
   --background-white: #FFFFFF;
@@ -10,8 +10,6 @@
   --border-color: #E2E8F0;
   --success-green: #10B981;
   --error-red: #EF4444;
-  --sidebar-width: 260px;
-  --header-height: 64px;
 }
 
 * {
@@ -21,10 +19,10 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--surface-light);
   color: var(--text-dark);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -37,6 +35,89 @@ button {
   border: none;
   background: none;
   font-family: inherit;
+}
+
+#root_view_port {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.content_view_port {
+  padding: 2.5rem;
+}
+
+/* Page Headers */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-titles h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  letter-spacing: -0.025em;
+}
+
+.header-titles p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.935rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+  background: var(--accent-orange);
+  color: white;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.25);
+}
+
+.btn-primary:hover {
+  background: var(--accent-orange-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.35);
+}
+
+/* Dashboard Empty State Special UI */
+.empty_state_card {
+  margin-top: 2rem;
+  background: white;
+  border: 2px dashed var(--border-color);
+  border-radius: 24px;
+  padding: 5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+}
+
+.empty_icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status_badge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Scrollbar */

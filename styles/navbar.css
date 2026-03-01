@@ -1,0 +1,99 @@
+/* Horizontal Navbar Styles - Premium Design */
+.navbar {
+  width: 100%;
+  height: 70px;
+  background: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.nav_logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  text-decoration: none;
+}
+
+.nav_logo span {
+  color: var(--accent-orange);
+}
+
+.nav_links {
+  display: flex;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+.nav_item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+  border-bottom: 3px solid transparent;
+}
+
+.nav_item:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav_item.active {
+  color: white;
+  border-bottom-color: var(--accent-orange);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav_user_section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user_profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.user_avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--accent-orange);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+}
+
+.logout_icon_btn {
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.logout_icon_btn:hover {
+  color: #ff4d4d;
+  background: rgba(255, 77, 77, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .nav_item span {
+    display: none;
+  }
+}
